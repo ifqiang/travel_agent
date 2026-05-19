@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 旅行助手 - 智能行程规划</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0F172A;
+            --secondary: #334155;
+            --cta: #0369A1;
+            --bg: #F8FAFC;
+            --text: #020617;
+        }
+
+        * {
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* 优化极光渐变背景 - 更柔和高级 */
+        .aurora-bg {
+            background: linear-gradient(135deg,
+            #7873f5 0%,
+            #6366f1 20%,
+            #8b5cf6 40%,
+            #ec4899 65%,
+            #60a5fa 100%);
+            background-size: 300% 300%;
+            animation: aurora 18s ease infinite;
+        }
+
+        @keyframes aurora {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* 强化玻璃态效果 */
+        .glass {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+        }
+
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* 优化滚动条 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(240, 244, 248, 0.6);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(147, 157, 172, 0.4);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.5);
+        }
+
+        /* 消息动画优化 */
+        .message-enter {
+            animation: messageSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 打字指示器优化 */
+        .typing-indicator span {
+            animation: typing 1.4s infinite ease-in-out;
+            animation-fill-mode: both;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0% {
+                opacity: 0.2;
+                transform: scale(0.8);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0.2;
+                transform: scale(0.8);
+            }
+        }
+
+        /* 订单卡片悬停效果强化 */
+        .order-card {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+
+        /* 按钮悬停效果强化 */
+        .btn-primary {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        /* 输入框焦点效果优化 */
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        /* === AI对话内容格式化样式 === */
+        .ai-message-content {
+            line-height: 1.7;
+        }
+
+        .ai-message-content .section-title {
+            font-weight: 600;
+            color: #4338ca;
+            margin: 12px 0 6px;
+            display: block;
+        }
+
+        .ai-message-content .price-highlight {
+            font-weight: 600;
+            color: #db2777;
+        }
+
+        .ai-message-content .tip-text {
+            color: #6b7280;
+            margin-top: 10px;
+            display: block;
+        }
+
+        /* 减少动画偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            .aurora-bg {
+                animation: none;
+            }
+
+            .message-enter {
+                animation: none;
+            }
+
+            .typing-indicator span {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen aurora-bg">
+<!-- 导航栏 -->
+<nav class="fixed top-4 left-4 right-4 z-50 glass rounded-2xl">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V15a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-semibold text-slate-800">AI 旅行助手</h1>
+                <p class="text-xs text-slate-500">智能行程规划专家</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="showQuickRecommend()"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium btn-primary cursor-pointer shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                快速推荐
+            </button>
+            <button onclick="toggleHistoryPanel()"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200/70 hover:bg-slate-100/80 text-slate-700 text-sm font-medium transition-all cursor-pointer"
+                    title="历史对话">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="hidden sm:inline">历史对话</span>
+            </button>
+            <button onclick="refreshOrders()" class="p-2.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer"
+                    title="刷新订单">
+                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- 主内容区 -->
+<main class="pt-28 pb-8 px-4 min-h-screen">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 对话面板 -->
+        <div class="lg:col-span-2 glass rounded-2xl overflow-hidden flex flex-col" style="height: calc(100vh - 160px);">
+            <!-- 对话头部 -->
+            <div class="px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-1.028L3 20l1.028-3.745A9.863 9.863 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800">智能对话</h2>
+                        <p class="text-xs text-slate-500">告诉我您的旅行需求</p>
+                    </div>
+                </div>
+                <button onclick="clearChat()"
+                        class="text-sm text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer">
+                    清空对话
+                </button>
+            </div>
+
+            <!-- 消息列表 -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
+                <!-- 欢迎消息 -->
+                <div class="message-enter flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 bg-slate-100/80 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+                        <p class="text-slate-800 text-sm leading-relaxed">
+                            👋 您好！我是 AI 旅行助手，可以帮您：
+                        </p>
+                        <ul class="mt-2 text-slate-600 text-sm space-y-1.5">
+                            <li class="flex items-center gap-2">✈️ 查询和预订机票</li>
+                            <li class="flex items-center gap-2">🏨 查询和预订酒店</li>
+                            <li class="flex items-center gap-2">🎒 查询和预订旅游产品</li>
+                            <li class="flex items-center gap-2">📋 管理您的订单</li>
+                            <li class="flex items-center gap-2">🎯 根据预算智能推荐行程</li>
+                        </ul>
+                        <p class="mt-3 text-slate-600 text-sm">
+                            请告诉我您的需求，例如："我想查北京到上海的航班" 或 "推荐三亚3天行程，预算3000元"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="px-6 py-4 border-t border-slate-200/60 bg-slate-50/80">
+                <div class="flex gap-3">
+                    <input
+                            type="text"
+                            id="messageInput"
+                            placeholder="输入您的旅行需求..."
+                            class="flex-1 px-4 py-3 rounded-xl border border-slate-200/70 focus:border-indigo-500 focus:outline-none input-focus text-slate-800 placeholder-slate-400 bg-white/90"
+                            onkeypress="if(event.key === 'Enter') sendMessage()"
+                    >
+                    <button
+                            onclick="sendMessage()"
+                            id="sendBtn"
+                            class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium btn-primary cursor-pointer flex items-center gap-2 shadow-sm"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        发送
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单面板 -->
+        <div class="glass rounded-2xl overflow-hidden flex flex-col" style="height: calc(100vh - 160px);">
+            <!-- 订单头部 -->
+            <div class="px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-slate-800">我的订单</h2>
+                        <p class="text-xs text-slate-500" id="orderCount">加载中...</p>
+                    </div>
+                </div>
+                <select id="orderFilter" onchange="filterOrders()"
+                        class="text-sm border border-slate-200/70 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500 cursor-pointer bg-white/90">
+                    <option value="all">全部</option>
+                    <option value="flight">机票</option>
+                    <option value="hotel">酒店</option>
+                    <option value="product">旅游产品</option>
+                </select>
+            </div>
+
+            <!-- 订单列表 -->
+            <div id="orderList" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                <!-- 订单卡片将通过 JS 动态加载 -->
+                <div class="text-center py-10 text-slate-400">
+                    <svg class="w-14 h-14 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p>加载订单中...</p>
+                </div>
+            </div>
+
+            <!-- 订单统计 -->
+            <div id="orderStats" class="px-6 py-4 border-t border-slate-200/60 bg-slate-50/80 hidden">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-2xl font-bold text-indigo-600" id="statFlight">0</p>
+                        <p class="text-xs text-slate-500">机票</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-purple-600" id="statHotel">0</p>
+                        <p class="text-xs text-slate-500">酒店</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-pink-600" id="statProduct">0</p>
+                        <p class="text-xs text-slate-500">旅游产品</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 历史对话侧边面板 -->
+<aside id="historyPanel"
+       class="fixed top-0 right-0 h-full w-full sm:w-96 z-50 transform translate-x-full transition-transform duration-300 ease-out"
+       style="background: rgba(255,255,255,0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+    <div class="h-full flex flex-col border-l border-slate-200/60 shadow-2xl">
+        <!-- 面板头部 -->
+        <div class="px-5 py-4 border-b border-slate-200/60 flex items-center justify-between bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800">历史对话</h3>
+                    <p class="text-xs text-slate-500" id="historyCount">共 0 个会话</p>
+                </div>
+            </div>
+            <button onclick="toggleHistoryPanel()"
+                    class="p-2 rounded-xl hover:bg-slate-100/80 transition-all cursor-pointer">
+                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 会话列表 -->
+        <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <!-- 会话项将通过 JS 动态渲染 -->
+            <div class="text-center py-10 text-slate-400">
+                <svg class="w-14 h-14 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-1.028L3 20l1.028-3.745A9.863 9.863 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <p>暂无历史会话</p>
+            </div>
+        </div>
+
+        <!-- 底部清空按钮 -->
+        <div class="px-5 py-4 border-t border-slate-200/60 bg-slate-50/80">
+            <button onclick="clearAllHistory()"
+                    class="w-full py-2.5 rounded-xl border border-rose-200/70 text-rose-600 hover:bg-rose-50 transition-all cursor-pointer text-sm font-medium flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                清空全部历史
+            </button>
+        </div>
+    </div>
+</aside>
+
+<!-- 历史面板遮罩层 -->
+<div id="historyOverlay" class="fixed inset-0 z-40 hidden bg-black/40 transition-opacity duration-300"
+     onclick="toggleHistoryPanel()"></div>
+
+<!-- 快速推荐弹窗 -->
+<div id="quickRecommendModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+    <div class="glass rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="px-6 py-4 border-b border-slate-200/60 flex items-center justify-between">
+            <h3 class="font-semibold text-slate-800">🎯 快速推荐</h3>
+            <button onclick="closeQuickRecommend()"
+                    class="p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">目的地</label>
+                <select id="quickDestination"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200/70 focus:border-indigo-500 focus:outline-none cursor-pointer bg-white/90">
+                    <option value="">加载中...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">预算（元）</label>
+                <select id="quickBudgetSelect"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200/70 focus:border-indigo-500 focus:outline-none cursor-pointer mb-2 bg-white/90">
+                    <option value="800">经济型 ¥800</option>
+                    <option value="1500">实惠型 ¥1,500</option>
+                    <option value="3000" selected>舒适型 ¥3,000</option>
+                    <option value="5000">品质型 ¥5,000</option>
+                    <option value="6000">豪华型 ¥6,000</option>
+                    <option value="custom">自定义</option>
+                </select>
+                <input type="number" id="quickBudget" value="3000" min="800" max="60000"
+                       class="w-full px-4 py-3 rounded-xl border border-slate-200/70 focus:border-indigo-500 focus:outline-none hidden bg-white/90"
+                       placeholder="输入预算金额">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">天数</label>
+                <input type="number" id="quickDays" value="3" min="1" max="30"
+                       class="w-full px-4 py-3 rounded-xl border border-slate-200/70 focus:border-indigo-500 focus:outline-none bg-white/90">
+            </div>
+            <button onclick="submitQuickRecommend()"
+                    class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium btn-primary cursor-pointer shadow-sm">
+                获取推荐方案
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 状态管理
+    let isStreaming = false;
+    let currentFilter = 'all';
+
+    // ========== 历史会话管理模块 ==========
+    const HISTORY_STORAGE_KEY = 'travel_assistant_sessions';
+    const CURRENT_SESSION_KEY = 'chat_session_id';
+
+    // 获取所有历史会话
+    function getAllSessions() {
+        try {
+            const data = localStorage.getItem(HISTORY_STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            console.error('Failed to load sessions:', e);
+            return [];
+        }
+    }
+
+    // 保存所有历史会话
+    function saveAllSessions(sessions) {
+        try {
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(sessions));
+        } catch (e) {
+            console.error('Failed to save sessions:', e);
+        }
+    }
+
+    // 获取当前会话ID
+    function getSessionId() {
+        let sessionId = localStorage.getItem(CURRENT_SESSION_KEY);
+        if (!sessionId) {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
+        }
+        return sessionId;
+    }
+
+    // 重置会话ID（创建新会话）
+    function resetSessionId() {
+        const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
+        return sessionId;
+    }
+
+    // 保存当前会话到历史
+    function saveCurrentSession(messages, title = null) {
+        if (!messages || messages.length === 0) return;
+
+        const sessionId = getSessionId();
+        const sessions = getAllSessions();
+
+        // 生成标题：取第一条用户消息的前20个字符
+        const firstUserMsg = messages.find(m => m.role === 'user');
+        const sessionTitle = title || (firstUserMsg
+                ? firstUserMsg.content.substring(0, 20) + (firstUserMsg.content.length > 20 ? '...' : '')
+                : '新对话');
+
+        // 查找是否已存在该会话
+        const existingIndex = sessions.findIndex(s => s.id === sessionId);
+        const sessionData = {
+            id: sessionId,
+            title: sessionTitle,
+            messages: messages,
+            updatedAt: new Date().toISOString(),
+            messageCount: messages.length
+        };
+
+        if (existingIndex >= 0) {
+            sessions[existingIndex] = sessionData;
+        } else {
+            sessions.unshift(sessionData);
+        }
+
+        // 限制最多保存50个会话
+        if (sessions.length > 50) {
+            sessions.pop();
+        }
+
+        saveAllSessions(sessions);
+    }
+
+    // 加载指定会话
+    function loadSession(sessionId) {
+        const sessions = getAllSessions();
+        const session = sessions.find(s => s.id === sessionId);
+
+        if (session) {
+            // 切换到该会话
+            localStorage.setItem(CURRENT_SESSION_KEY, sessionId);
+
+            // 清空当前显示
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+
+            // 渲染历史消息
+            if (session.messages && session.messages.length > 0) {
+                for (const msg of session.messages) {
+                    addMessage(msg.content, msg.role, false);
+                }
+            } else {
+                addMessage('👋 对话已加载。有什么我可以帮您的吗？', 'assistant');
+            }
+
+            // 关闭历史面板
+            toggleHistoryPanel();
+        }
+    }
+
+    // 删除单个会话
+    function deleteSession(sessionId, event) {
+        event.stopPropagation(); // 阻止冒泡，避免触发加载
+
+        if (!confirm('确定要删除此会话吗？')) return;
+
+        let sessions = getAllSessions();
+        sessions = sessions.filter(s => s.id !== sessionId);
+        saveAllSessions(sessions);
+
+        // 如果删除的是当前会话，创建新会话
+        if (sessionId === getSessionId()) {
+            resetSessionId();
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            addMessage('👋 对话已清空。有什么我可以帮您的吗？', 'assistant');
+        }
+
+        // 刷新历史列表
+        renderHistoryList();
+    }
+
+    // 清空所有历史
+    function clearAllHistory() {
+        if (!confirm('确定要清空所有历史会话吗？此操作不可恢复。')) return;
+
+        localStorage.removeItem(HISTORY_STORAGE_KEY);
+        resetSessionId();
+
+        // 清空当前对话
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        addMessage('👋 所有历史已清空。有什么我可以帮您的吗？', 'assistant');
+
+        // 刷新历史列表
+        renderHistoryList();
+    }
+
+    // 渲染历史会话列表
+    function renderHistoryList() {
+        const sessions = getAllSessions();
+        const container = document.getElementById('historyList');
+        const currentSessionId = getSessionId();
+
+        document.getElementById('historyCount').textContent = `共 ${sessions.length} 个会话`;
+
+        if (sessions.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-10 text-slate-400">
+                    <svg class="w-14 h-14 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-1.028L3 20l1.028-3.745A9.863 9.863 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <p>暂无历史会话</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = sessions.map(session => {
+            const isActive = session.id === currentSessionId;
+            const date = new Date(session.updatedAt);
+            const timeStr = formatRelativeTime(date);
+
+            return `
+                <div onclick="loadSession('${session.id}')"
+                     class="group p-3 rounded-xl border transition-all cursor-pointer ${isActive
+                    ? 'border-indigo-300/70 bg-indigo-50/60'
+                    : 'border-slate-200/70 bg-white/80 hover:border-indigo-200/60 hover:bg-indigo-50/30'}">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-medium text-slate-800 text-sm truncate">${escapeHtml(session.title)}</h4>
+                            <div class="flex items-center gap-2 mt-1.5 text-xs text-slate-500">
+                                <span>${timeStr}</span>
+                                <span class="text-slate-300">|</span>
+                                <span>${session.messageCount || 0} 条消息</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            ${isActive ? '<span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">当前</span>' : ''}
+                            <button onclick="deleteSession('${session.id}', event)"
+                                    class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-rose-100 transition-all cursor-pointer">
+                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 格式化相对时间
+    function formatRelativeTime(date) {
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes} 分钟前`;
+        if (hours < 24) return `${hours} 小时前`;
+        if (days < 7) return `${days} 天前`;
+
+        return date.toLocaleDateString('zh-CN', {month: 'short', day: 'numeric'});
+    }
+
+    // 切换历史面板显示
+    function toggleHistoryPanel() {
+        const panel = document.getElementById('historyPanel');
+        const overlay = document.getElementById('historyOverlay');
+
+        const isHidden = panel.classList.contains('translate-x-full');
+
+        if (isHidden) {
+            // 打开面板
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+            renderHistoryList(); // 刷新列表
+        } else {
+            // 关闭面板
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = ''; // 恢复滚动
+        }
+    }
+
+    // ========== 原有会话ID管理（已整合到上方） ==========
+
+    // 加载对话历史（优先从localStorage，其次从服务器）
+    async function loadConversationHistory() {
+        const sessionId = getSessionId();
+
+        // 先检查localStorage中是否有该会话
+        const sessions = getAllSessions();
+        const localSession = sessions.find(s => s.id === sessionId);
+
+        if (localSession && localSession.messages && localSession.messages.length > 0) {
+            // 从本地存储加载
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '';
+            for (const msg of localSession.messages) {
+                addMessage(msg.content, msg.role, false);
+            }
+            return;
+        }
+
+        // 尝试从服务器加载
+        try {
+            const response = await fetch(`/chat/history/${encodeURIComponent(sessionId)}`);
+            const data = await response.json();
+
+            if (data.history && data.history.length > 0) {
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = '';
+
+                for (const msg of data.history) {
+                    addMessage(msg.content, msg.role, false);
+                }
+
+                // 保存到本地存储
+                saveCurrentSession(data.history);
+            }
+        } catch (error) {
+            console.error('Failed to load conversation history:', error);
+        }
+    }
+
+    // 收集当前对话消息
+    function collectCurrentMessages() {
+        const container = document.getElementById('chatMessages');
+        const messages = [];
+        const messageDivs = container.querySelectorAll('.message-enter');
+
+        messageDivs.forEach(div => {
+            const isUser = div.classList.contains('flex-row-reverse');
+            const contentWrap = div.querySelector('.flex-1');
+            if (contentWrap) {
+                // 提取纯文本内容
+                let content = '';
+                const p = contentWrap.querySelector('p');
+                const divContent = contentWrap.querySelector('.ai-message-content');
+
+                if (p) {
+                    content = p.textContent || p.innerText;
+                } else if (divContent) {
+                    content = divContent.textContent || divContent.innerText;
+                }
+
+                if (content) {
+                    messages.push({
+                        role: isUser ? 'user' : 'assistant',
+                        content: content.trim()
+                    });
+                }
+            }
+        });
+
+        return messages;
+    }
+
+    // 发送消息
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if (!message || isStreaming) return;
+
+        input.value = '';
+
+        // 添加用户消息
+        addMessage(message, 'user');
+
+        // 显示加载状态
+        const loadingId = addLoadingMessage();
+        isStreaming = true;
+        updateSendButton();
+
+        try {
+            const sessionId = getSessionId();
+
+            // SSE 流式请求
+            const response = await fetch('/chat/stream', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    message,
+                    thread_id: 'web',
+                    session_id: sessionId
+                })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let assistantMessage = '';
+            let messageElement = null;
+
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.content) {
+                                assistantMessage += data.content;
+                                if (!messageElement) {
+                                    removeLoadingMessage(loadingId);
+                                    messageElement = addMessage(assistantMessage, 'assistant', true);
+                                } else {
+                                    updateMessage(messageElement, assistantMessage);
+                                }
+                            }
+
+                            if (data.done) {
+                                // 刷新订单列表
+                                refreshOrders();
+
+                                // 保存当前会话到历史
+                                const messages = collectCurrentMessages();
+                                saveCurrentSession(messages);
+                            }
+
+                            if (data.error) {
+                                removeLoadingMessage(loadingId);
+                                addMessage('❌ 发生错误: ' + data.error, 'assistant');
+                            }
+                        } catch (e) {
+                        }
+                    }
+                }
+            }
+
+            if (!messageElement) {
+                removeLoadingMessage(loadingId);
+                addMessage('抱歉，我没有收到有效响应，请重试。', 'assistant');
+            }
+        } catch (error) {
+            removeLoadingMessage(loadingId);
+            addMessage('❌ 网络错误，请检查连接后重试。', 'assistant');
+        } finally {
+            isStreaming = false;
+            updateSendButton();
+        }
+    }
+
+    // ========== 格式化函数：彻底清除所有多余符号（###、---、**、工具调用日志） ==========
+    // ========== 最终版格式化函数：彻底清除所有 ###、---、**、工具日志、多余空行 ==========
+    function formatAiContent(rawText) {
+        let html = rawText
+                // 1. 移除工具调用日志
+                .replace(/正在调用工具:.+?\.\.\./g, '')
+                .replace(/工具 .+? 执行完成/g, '')
+                // 2. 移除工具状态emoji符号
+                .replace(/🔧/g, '')
+                .replace(/✅/g, '')
+                // 3. 强制清除所有 ### 开头的标记（包括带表情的 ###）
+                .replace(/###\s*.+/g, '')
+                // 4. 清除分割线 ---
+                .replace(/---+/g, '')
+                // 5. 清除加粗标记 **
+                .replace(/\*\*(.+?)\*\*/g, '$1')
+                // 6. 清除连续空行、多余换行
+                .replace(/\n\s*\n+/g, '\n')
+                // 7. 价格高亮
+                .replace(/¥(\d+)/g, `<span class="price-highlight">¥$1</span>`)
+                // 8. 换行转为 HTML 换行
+                .replace(/\n/g, '<br>');
+
+        return `<div class="ai-message-content">${html}</div>`;
+    }
+
+    // 添加消息到聊天区
+    function addMessage(content, role, isStreaming = false) {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'message-enter flex gap-3' + (role === 'user' ? ' flex-row-reverse' : '');
+
+        const avatar = role === 'user'
+                ? '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex-shrink-0 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>'
+                : '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>';
+
+        const bubbleClass = role === 'user'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl rounded-tr-none shadow-sm'
+                : 'bg-slate-100/80 text-slate-800 rounded-2xl rounded-tl-none shadow-sm';
+
+        // 用户消息直接展示，AI消息格式化
+        let messageHtml;
+        if (role === 'assistant') {
+            messageHtml = formatAiContent(content);
+        } else {
+            messageHtml = `<p class="text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(content)}</p>`;
+        }
+
+        div.innerHTML = `
+                ${avatar}
+                <div class="flex-1 ${bubbleClass} px-4 py-3">
+                    ${messageHtml}
+                </div>
+            `;
+
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+
+        return div;
+    }
+
+    // 更新消息内容（流式）
+    function updateMessage(element, content) {
+        const contentWrap = element.querySelector('.flex-1');
+        if (contentWrap) {
+            contentWrap.innerHTML = formatAiContent(content);
+        }
+        const container = document.getElementById('chatMessages');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // 添加加载消息
+    function addLoadingMessage() {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.id = 'loading-message';
+        div.className = 'message-enter flex gap-3';
+        div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1 bg-slate-100/80 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+                    <div class="typing-indicator flex gap-1.5">
+                        <span class="w-2 h-2 bg-slate-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-slate-400 rounded-full"></span>
+                        <span class="w-2 h-2 bg-slate-400 rounded-full"></span>
+                    </div>
+                </div>
+            `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        return 'loading-message';
+    }
+
+    // 移除加载消息
+    function removeLoadingMessage(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    // 更新发送按钮状态
+    function updateSendButton() {
+        const btn = document.getElementById('sendBtn');
+        if (isStreaming) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // 清空对话（创建新会话）
+    async function clearChat() {
+        // 先保存当前会话（如果有消息）
+        const messages = collectCurrentMessages();
+        if (messages.length > 0) {
+            saveCurrentSession(messages);
+        }
+
+        // 创建新会话
+        resetSessionId();
+
+        // 清空前端显示
+        const container = document.getElementById('chatMessages');
+        container.innerHTML = '';
+        // 重新添加欢迎消息
+        addMessage('👋 对话已清空。有什么我可以帮您的吗？', 'assistant');
+    }
+
+    // 刷新订单
+    async function refreshOrders() {
+        try {
+            const response = await fetch('/orders');
+            const data = await response.json();
+            renderOrders(data.orders);
+        } catch (error) {
+            console.error('Failed to load orders:', error);
+        }
+    }
+
+    // 渲染订单列表
+    function renderOrders(orders) {
+        const container = document.getElementById('orderList');
+        const filter = document.getElementById('orderFilter').value;
+
+        const filtered = filter === 'all'
+                ? orders
+                : orders.filter(o => o.order_type === filter);
+
+        // 更新统计
+        document.getElementById('orderCount').textContent = `共 ${orders.length} 个订单`;
+        document.getElementById('statFlight').textContent = orders.filter(o => o.order_type === 'flight').length;
+        document.getElementById('statHotel').textContent = orders.filter(o => o.order_type === 'hotel').length;
+        document.getElementById('statProduct').textContent = orders.filter(o => o.order_type === 'product').length;
+        document.getElementById('orderStats').classList.remove('hidden');
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <svg class="w-14 h-14 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <p>暂无订单</p>
+                    </div>
+                `;
+            return;
+        }
+
+        const typeIcons = {
+            flight: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>',
+            hotel: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-5 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>',
+            product: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V15a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+        };
+
+        const typeColors = {
+            flight: 'from-indigo-400 to-indigo-600',
+            hotel: 'from-purple-400 to-purple-600',
+            product: 'from-pink-400 to-pink-600'
+        };
+
+        const statusColors = {
+            pending: 'bg-amber-50 text-amber-600',
+            confirmed: 'bg-emerald-50 text-emerald-600',
+            cancelled: 'bg-rose-50 text-rose-600',
+            changed: 'bg-blue-50 text-blue-600'
+        };
+
+        const statusText = {
+            pending: '待确认',
+            confirmed: '已确认',
+            cancelled: '已取消',
+            changed: '已改签'
+        };
+
+        container.innerHTML = filtered.map(order => `
+                <div class="order-card bg-white rounded-xl p-4 border border-slate-100/80 cursor-pointer shadow-sm">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br ${typeColors[order.order_type]} flex items-center justify-center text-white">
+                                ${typeIcons[order.order_type]}
+                            </div>
+                            <span class="text-xs text-slate-500">#${order.id}</span>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full font-medium ${statusColors[order.status]}">${statusText[order.status]}</span>
+                    </div>
+                    <h4 class="font-medium text-slate-800 text-sm mb-1 truncate">${order.item_name}</h4>
+                    <div class="flex items-center justify-between mt-2.5">
+                        <span class="text-lg font-bold text-slate-900">¥${order.total_price.toFixed(0)}</span>
+                        ${order.status !== 'cancelled' ? `
+                <button onclick="cancelOrder(${order.id})" class="text-xs text-rose-600 hover:text-rose-700 transition-colors cursor-pointer font-medium">
+                取消订单
+                </button>
+                ` : ''}
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    // 筛选订单
+    function filterOrders() {
+        refreshOrders();
+    }
+
+    // 取消订单
+    async function cancelOrder(orderId) {
+        if (!confirm('确定要取消此订单吗？')) return;
+
+        try {
+            const response = await fetch(`/orders/${orderId}/cancel`, {method: 'POST'});
+            const data = await response.json();
+
+            if (data.success) {
+                refreshOrders();
+                addMessage(`✅ 订单 #${orderId} 已取消`, 'assistant');
+            } else {
+                alert('取消失败: ' + (data.message || '未知错误'));
+            }
+        } catch (error) {
+            alert('网络错误，请重试');
+        }
+    }
+
+    // 显示快速推荐弹窗
+    function showQuickRecommend() {
+        document.getElementById('quickRecommendModal').classList.remove('hidden');
+        document.getElementById('quickRecommendModal').classList.add('flex');
+    }
+
+    // 关闭快速推荐弹窗
+    function closeQuickRecommend() {
+        document.getElementById('quickRecommendModal').classList.add('hidden');
+        document.getElementById('quickRecommendModal').classList.remove('flex');
+    }
+
+    // 提交快速推荐
+    function submitQuickRecommend() {
+        const destination = document.getElementById('quickDestination').value;
+        const budget = document.getElementById('quickBudget').value;
+        const days = document.getElementById('quickDays').value;
+
+        closeQuickRecommend();
+
+        const message = `我想去${destination}玩，预算${budget}元，计划玩${days}天，帮我推荐一下`;
+        document.getElementById('messageInput').value = message;
+        sendMessage();
+    }
+
+    // HTML 转义
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 加载城市列表
+    async function loadCities() {
+        try {
+            const response = await fetch('/cities');
+            const data = await response.json();
+            const select = document.getElementById('quickDestination');
+
+            select.innerHTML = data.cities.map(city =>
+                    `<option value="${city}">${city}</option>`
+            ).join('');
+
+            // 默认选择三亚
+            if (data.cities.includes('三亚')) {
+                select.value = '三亚';
+            }
+        } catch (error) {
+            console.error('Failed to load cities:', error);
+            const select = document.getElementById('quickDestination');
+            select.innerHTML = '<option value="北京">北京</option><option value="上海">上海</option><option value="广州">广州</option><option value="成都">成都</option><option value="三亚" selected>三亚</option>';
+        }
+    }
+
+    // 预算选择处理
+    document.getElementById('quickBudgetSelect').addEventListener('change', function () {
+        const customInput = document.getElementById('quickBudget');
+        if (this.value === 'custom') {
+            customInput.classList.remove('hidden');
+            customInput.focus();
+        } else {
+            customInput.classList.add('hidden');
+            customInput.value = this.value;
+        }
+    });
+
+    // 页面加载时刷新订单、加载城市和加载对话历史
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshOrders();
+        loadCities();
+        loadConversationHistory();
+    });
+</script>
+</body>
+</html>
