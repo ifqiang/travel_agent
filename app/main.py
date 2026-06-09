@@ -52,7 +52,11 @@ app.add_middleware(
 )
 
 # 静态文件
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    logger.warning(f"Static directory not found: {static_dir}")
 
 # 模板引擎
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
