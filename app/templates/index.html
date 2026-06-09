@@ -623,6 +623,7 @@
         const chatMessages = document.getElementById('chatMessages');
         const indicatorDiv = document.createElement('div');
         indicatorDiv.className = 'message-enter flex gap-4';
+        indicatorDiv.id = 'typingIndicator';
         indicatorDiv.innerHTML = `
             <div class="w-8 h-8 rounded-full bg-[#10a37f] flex-shrink-0 flex items-center justify-center">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -630,6 +631,7 @@
                 </svg>
             </div>
             <div class="flex-1">
+                <p class="text-sm text-gray-500 mb-2" id="loadingText">正在思考中...</p>
                 <div class="typing-indicator">
                     <span></span>
                     <span></span>
@@ -640,6 +642,27 @@
         
         chatMessages.appendChild(indicatorDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // 动态更新加载文字
+        const loadingTexts = [
+            '正在思考中...',
+            '正在查询信息...',
+            '正在分析中...',
+            '正在整理回复...',
+            '请稍候...'
+        ];
+        
+        let textIndex = 0;
+        const textInterval = setInterval(() => {
+            textIndex = (textIndex + 1) % loadingTexts.length;
+            const textElement = document.getElementById('loadingText');
+            if (textElement) {
+                textElement.textContent = loadingTexts[textIndex];
+            }
+        }, 2000);
+        
+        // 保存interval ID以便后续清除
+        indicatorDiv.dataset.intervalId = textInterval;
         
         return indicatorDiv;
     }
@@ -662,6 +685,27 @@
         
         // 斜体
         formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        
+        // 标题替换 - 将 # 替换为图标和样式
+        // 一级标题 (# 标题)
+        formatted = formatted.replace(/^# (.+)$/gm, '<h2 class="text-lg font-bold text-gray-800 my-3 flex items-center gap-2">$1</h2>');
+        
+        // 二级标题 (## 标题)
+        formatted = formatted.replace(/^## (.+)$/gm, '<h3 class="text-base font-semibold text-gray-700 my-2 flex items-center gap-2">$1</h3>');
+        
+        // 三级标题 (### 标题)
+        formatted = formatted.replace(/^### (.+)$/gm, '<h4 class="text-sm font-medium text-gray-600 my-2">$1</h4>');
+        
+        // 检测标题前的图标关键词并添加对应图标
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*查询和预订机票.*)(<\/h[23]>)/gm, '$1✈️ $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*查询和预订酒店.*)(<\/h[23]>)/gm, '$1🏨 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*查询和预订旅游产品.*)(<\/h[23]>)/gm, '$1🎒 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*管理.*订单.*)(<\/h[23]>)/gm, '$1📋 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*智能推荐.*)(<\/h[23]>)/gm, '$1🎯 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*航班.*)(<\/h[23]>)/gm, '$1✈️ $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*酒店.*)(<\/h[23]>)/gm, '$1🏨 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*旅游产品.*)(<\/h[23]>)/gm, '$1🎒 $2$3');
+        formatted = formatted.replace(/^(<h[23] class="[^"]*">)(.*订单.*)(<\/h[23]>)/gm, '$1📋 $2$3');
         
         // 换行
         formatted = formatted.replace(/\n/g, '<br>');
