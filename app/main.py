@@ -3,10 +3,12 @@ AI 旅行助手 - FastAPI 主应用
 """
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from jinja2 import Environment, FileSystemLoader
 import logging
+import os
 
 from .core.config import settings
 from .db.connection import init_db
@@ -53,17 +55,24 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 模板引擎
-templates = Jinja2Templates(directory="app/templates")
+templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+jinja_env = Environment(loader=FileSystemLoader(templates_dir))
 
 # 注册路由
 app.include_router(chat.router)
 app.include_router(orders.router)
 
 
-@app.get("/", tags=["page"])
+@app.get("/", tags=["page"], response_class=HTMLResponse)
 async def index(request: Request):
     """主页"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    try:
+        logger.info("Rendering index.html template")
+        template = jinja_env.get_template("index.html")
+        return template.render(request=request)
+    except Exception as e:
+        logger.error(f"Error rendering template: {e}", exc_info=True)
+        return f"Error: {e}"
 
 
 @app.get("/health", tags=["health"])
