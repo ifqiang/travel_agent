@@ -115,6 +115,58 @@ async def get_history(session_id: str, limit: int = 50):
     return {"session_id": session_id, "history": history, "count": len(history)}
 
 
+@router.get("/sessions")
+async def get_all_sessions():
+    """
+    获取所有会话列表
+
+    Returns:
+        会话列表，包含每个会话的ID、最后一条消息和消息数量
+    """
+    async with get_db() as db:
+        cursor = await db.execute("""
+            SELECT session_id, content, created_at
+            FROM conversations
+            WHERE role = 'user'
+            ORDER BY created_at DESC
+        """)
+        rows = await cursor.fetchall()
+        
+        sessions = {}
+        for row in rows:
+            session_id = row["session_id"]
+            if session_id not in sessions:
+                sessions[session_id] = {
+                    "session_id": session_id,
+                    "last_message": row["content"],
+                    "created_at": row["created_at"]
+                }
+        
+        for session_id in sessions:
+            cursor = await db.execute(
+                "SELECT COUNT(*) as count FROM conversations WHERE session_id = ?",
+                (session_id,)
+            )
+            count = (await cursor.fetchone())["count"]
+            sessions[session_id]["message_count"] = count
+        
+        return {"sessions": list(sessions.values()), "total": len(sessions)}
+
+
+@router.delete("/history")
+async def clear_all_history():
+    """
+    清空所有会话历史
+
+    Returns:
+        操作结果
+    """
+    async with get_db() as db:
+        await db.execute("DELETE FROM conversations")
+        await db.commit()
+    return {"success": True, "message": "所有会话历史已清空"}
+
+
 @router.delete("/history/{session_id}")
 async def clear_history(session_id: str):
     """

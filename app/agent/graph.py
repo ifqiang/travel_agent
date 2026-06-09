@@ -39,7 +39,6 @@ class TravelAgent:
         self.app = create_react_agent(
             self.llm,
             ALL_TOOLS,
-            state_modifier=SYSTEM_PROMPT,
             checkpointer=self.checkpointer,
         )
     
@@ -61,7 +60,7 @@ class TravelAgent:
             流式输出的文本片段
         """
         # 构建消息
-        messages = []
+        messages = [SystemMessage(content=SYSTEM_PROMPT)]
         if history:
             for msg in history:
                 if msg["role"] == "user":
@@ -83,16 +82,15 @@ class TravelAgent:
         ):
             kind = event["event"]
             
-            # 工具调用开始
+            # 工具调用开始 - 不显示工具调用信息，保持静默
             if kind == "on_tool_start":
-                tool_name = event["name"]
-                tool_input = event["data"].get("input", {})
-                yield f"\n🔧 正在调用工具: {tool_name}...\n"
+                # 不输出任何内容，打字指示器已经显示加载状态
+                pass
             
-            # 工具调用结束
+            # 工具调用结束 - 不显示工具调用信息
             elif kind == "on_tool_end":
-                tool_name = event["name"]
-                yield f"✅ 工具 {tool_name} 执行完成\n\n"
+                # 不输出任何内容
+                pass
             
             # LLM 生成 token
             elif kind == "on_chat_model_stream":
@@ -130,7 +128,7 @@ class TravelAgent:
         config = {"configurable": {"thread_id": thread_id}}
         
         result = await self.app.ainvoke(
-            {"messages": [HumanMessage(content=message)]},
+            {"messages": [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=message)]},
             config=config
         )
         
